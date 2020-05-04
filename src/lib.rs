@@ -65,9 +65,6 @@ pub fn rec_read_dir(input_path: &Path, use_json: bool) {
 }
 
 fn read_csproj(path: &Path, use_json: bool) {
-
-//    println!("Found {:?}, attempting to read...", path);
-
     let mut file = File::open(path).unwrap();
     let mut csproj = String::new();
     file.read_to_string(&mut csproj).unwrap();
