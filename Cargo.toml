@@ -1,0 +1,13 @@
+[package]
+name = "csdeps"
+version = "0.1.0"
+authors = ["Taylor Fraley <taylor.o.fraley@protonmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0.106", features = ["derive"] }
+serde-xml-rs = "0.4.0"
+serde_json = "1.0"
+structopt = "0.3"
