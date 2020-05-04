@@ -23,8 +23,8 @@ struct ItemGroup {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct Project {
-    #[serde(rename = "ItemGroup")]
-    pub item_group: ItemGroup,
+    #[serde(rename = "ItemGroup", default)]
+    pub item_groups: Vec<ItemGroup>,
 }
 
 #[derive(Debug, Serialize, PartialEq)]
@@ -34,10 +34,10 @@ struct Deps {
 }
 
 impl Deps {
-    fn new(in_name: &OsStr, deps: Vec<PackageReference>) -> Deps {
+    fn new(in_name: &OsStr) -> Deps {
         Deps {
             name : in_name.to_os_string().into_string().unwrap(),
-            dependencies : deps,
+            dependencies : vec!(),
         }
     }
 }
@@ -66,7 +66,7 @@ pub fn rec_read_dir(input_path: &Path, use_json: bool) {
 
 fn read_csproj(path: &Path, use_json: bool) {
 
-    println!("Found {:?}, attempting to read...", path);
+//    println!("Found {:?}, attempting to read...", path);
 
     let mut file = File::open(path).unwrap();
     let mut csproj = String::new();
@@ -74,12 +74,19 @@ fn read_csproj(path: &Path, use_json: bool) {
     if csproj.starts_with("\u{feff}") {
       csproj = csproj.split_off(3);
     }
-    println!("{:?}", &csproj);
 
     let proj: Project = from_str(&csproj).unwrap();
 
-    let deps = Deps::new(path.file_stem().unwrap().clone(), proj.item_group.dependencies);
+    let mut deps = Deps::new(path.file_stem().unwrap().clone()); 
 
+    for item_group in proj.item_groups {
+      if item_group.dependencies.len() > 0 {
+        for dep in item_group.dependencies {
+          deps.dependencies.push(dep);
+        }
+      }
+    }
+        
     if use_json  {
         let j = serde_json::to_string_pretty(&deps).unwrap();
         println!("{}", j);
@@ -87,7 +94,7 @@ fn read_csproj(path: &Path, use_json: bool) {
     else {
         println!("Project name: {}", deps.name);
         for reference in deps.dependencies.iter() {
-            println!("{} version: {}", reference.include, reference.version);
+          println!("{} version: {}", reference.include, reference.version);
         }
     }
 }
