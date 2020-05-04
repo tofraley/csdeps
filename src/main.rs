@@ -10,6 +10,7 @@ struct Opt {
     #[structopt(name = "DIR", parse(from_os_str))]
     dir: PathBuf,
 
+    /// Output using json format
     #[structopt(short, long)]
     json: bool,
 }
