@@ -7,6 +7,7 @@ use csdeps::{rec_read_dir};
 #[derive(StructOpt, Debug)]
 #[structopt(name = "basic")]
 struct Opt {
+    /// Directory to search for project files
     #[structopt(name = "DIR", parse(from_os_str))]
     dir: PathBuf,
 
