@@ -41,6 +41,12 @@ impl Deps {
     }
 }
 
+#[derive(Debug, Serialize)]
+struct ProjectCollection<'a> {
+    pub content: &'a Vec<Deps>,
+    pub project_count: &'a usize,
+}
+
 pub fn rec_read_dir(input_path: &Path) -> Vec<Deps> {
     let mut deps_vec: Vec<Deps> = vec!();
     match read_dir(input_path) {

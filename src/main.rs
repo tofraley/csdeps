@@ -2,8 +2,7 @@
 
 use structopt::StructOpt;
 use std::path::PathBuf;
-use csdeps::{Deps, rec_read_dir};
-use serde::{Serialize};
+use csdeps::{Deps, ProjectCollection, rec_read_dir};
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "basic")]
@@ -17,23 +16,17 @@ struct Opt {
     json: bool,
 }
 
-#[derive(Debug, Serialize)]
-struct ProjectCollection<'a> {
-    pub content: &'a Vec<Deps>,
-    pub project_count: &'a usize,
-}
-
 fn main() -> std::io::Result<()> {
     let opt = Opt::from_args();
 
     let deps: Vec<Deps> = rec_read_dir(opt.dir.as_path());
 
-    handle_deps_with_opts(deps, opt);
+    handle_deps_with_opt(deps, opt);
 
     Ok(())
 }
 
-fn handle_deps_with_opts(deps: Vec<Deps>, opt: Opt) {
+fn handle_deps_with_opt(deps: Vec<Deps>, opt: Opt) {
     if opt.json  {
         let coll: ProjectCollection = ProjectCollection {
           content: &deps,
