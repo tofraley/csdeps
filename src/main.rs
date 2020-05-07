@@ -5,7 +5,6 @@ use std::path::PathBuf;
 use csdeps::{Deps, ProjectCollection, rec_read_dir};
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "basic")]
 struct Opt {
     /// Directory to search for project files
     #[structopt(name = "DIR", parse(from_os_str))]
