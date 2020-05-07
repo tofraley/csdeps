@@ -4,6 +4,8 @@ use std::fs::{File, DirEntry, read_dir};
 use std::io::prelude::*;
 use std::path::Path;
 
+const INVALID_CHAR: &str = "\u{feff}";
+
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct PackageReference {
   #[serde(alias = "Include", default)]
@@ -50,6 +52,24 @@ impl Deps {
 
     Ok(deps)
   }
+
+  pub fn vec_from_filepaths(paths: Vec<DirEntry>) -> Result<Vec<Deps>, std::io::Error> {
+    let mut deps_vec: Vec<Deps> = vec!();
+    for path in paths{
+      let source = read_csproj(&path.path())?;
+      match from_str(&source) {
+        Err(why) => println!("{:?}", why),
+        Ok(mut proj) => {
+          let deps = 
+            Deps::from_proj_str(
+              &path.path().file_stem().unwrap().to_os_string().into_string().unwrap(), 
+              &mut proj).unwrap();
+              deps_vec.push(deps);
+        }
+      }
+    }
+    Ok(deps_vec)
+  }
 }
 
 #[derive(Debug, Serialize)]
@@ -79,31 +99,9 @@ pub fn rec_read_dir(input_path: &Path) -> Result<Vec<DirEntry>, std::io::Error> 
   Ok(paths)
 }
 
-pub fn get_deps(paths: Vec<DirEntry>) -> Result<Vec<Deps>, std::io::Error> {
-  let mut deps_vec: Vec<Deps> = vec!();
-  for path in paths{
-    match from_str(&read_csproj(&path.path())?) {
-      Err(why) => println!("{:?}", why),
-      Ok(mut proj) => {
-        let deps = 
-        Deps::from_proj_str(
-          &path.path().file_stem().unwrap().to_os_string().into_string().unwrap(), 
-          &mut proj).unwrap();
-          deps_vec.push(deps);
-      }
-    }
-  }
-  Ok(deps_vec)
-}
-
 fn read_csproj(path: &Path) -> Result<String, std::io::Error> {
-    let mut file = File::open(path)?;
-    let mut proj = String::new();
-    file.read_to_string(&mut proj)?;
-
-    if proj.starts_with("\u{feff}") {
-      proj = proj.split_off(3);
-    }
-    Ok(proj)
+  let mut file = File::open(path)?;
+  let mut proj = String::new();
+  file.read_to_string(&mut proj)?;
+  Ok(proj.trim_start_matches(INVALID_CHAR).to_string())
 }
-
