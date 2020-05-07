@@ -2,7 +2,7 @@
 
 use structopt::StructOpt;
 use std::path::PathBuf;
-use csdeps::{Deps, ProjectCollection, rec_read_dir};
+use csdeps::{Deps, ProjectCollection, rec_read_dir, get_deps};
 
 #[derive(StructOpt, Debug)]
 struct Opt {
@@ -17,7 +17,8 @@ struct Opt {
 
 fn main() -> std::io::Result<()> {
   let opt = Opt::from_args();
-  let deps = rec_read_dir(opt.dir.as_path())?;
+  let paths = rec_read_dir(opt.dir.as_path())?;
+  let deps = get_deps(paths)?;
   handle_deps_with_opt(deps, opt);
   Ok(())
 }
