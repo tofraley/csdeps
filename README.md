@@ -17,7 +17,7 @@ Given a directory, csdeps recursively searches folders for `.csproj` files, and 
 1. Navigate to [releases](https://github.com/tofraley/csdeps/releases), and download the latest version of `csdeps.exe`.
 
 ## Usage:
-* Use the `json` flag to print output in that format.
+Use the `json` flag to print output in that format.
 
 ```
 USAGE:
