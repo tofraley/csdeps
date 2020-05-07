@@ -47,28 +47,25 @@ pub struct ProjectCollection<'a> {
     pub project_count: &'a usize,
 }
 
-pub fn rec_read_dir(input_path: &Path) -> Vec<Deps> {
+pub fn rec_read_dir(input_path: &Path) -> Result<Vec<Deps>, std::io::Error> {
     let mut deps_vec: Vec<Deps> = vec!();
-    match read_dir(input_path) {
-        Err(why) => println!("! {:?}", why.kind()),
-        Ok(dir_entry) => for dir in dir_entry {
-            match dir {
-                Err(why) => println!("! {:?}", why.kind()),
-                Ok(path) => {
-                    if path.path().is_dir() {
-                        deps_vec.append(&mut rec_read_dir(&path.path()));
-                    }
-
-                    if let Some(extension) = path.path().extension(){
-                        if extension == "csproj" {
-                            deps_vec.push(read_csproj(&path.path()));
-                        }
-                    }
-                },
-            }
+    let entries = read_dir(input_path)?;
+    for dir in entries {
+      match dir {
+        Err(why) => return Err(why),
+        Ok(path) => {
+          if path.path().is_dir() {
+              deps_vec.append(&mut rec_read_dir(&path.path())?);
+          }
+          if let Some(extension) = path.path().extension(){
+              if extension == "csproj" {
+                  deps_vec.push(read_csproj(&path.path()));
+              }
+          }
         }
+      }
     }
-    deps_vec
+    Ok(deps_vec)
 }
 
 fn read_csproj(path: &Path) -> Deps {

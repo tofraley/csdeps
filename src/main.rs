@@ -17,11 +17,8 @@ struct Opt {
 
 fn main() -> std::io::Result<()> {
     let opt = Opt::from_args();
-
-    let deps: Vec<Deps> = rec_read_dir(opt.dir.as_path());
-
+    let deps = rec_read_dir(opt.dir.as_path())?;
     handle_deps_with_opt(deps, opt);
-
     Ok(())
 }
 
