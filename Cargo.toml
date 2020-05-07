@@ -3,6 +3,9 @@ name = "csdeps"
 version = "0.1.1"
 authors = ["Taylor Fraley <taylor.o.fraley@protonmail.com>"]
 edition = "2018"
+description = "Reads csproj files and prints out the package dependencies."
+repository = "https://github.com/tofraley/csdeps"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
