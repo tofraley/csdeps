@@ -42,7 +42,7 @@ impl Deps {
 }
 
 #[derive(Debug, Serialize)]
-struct ProjectCollection<'a> {
+pub struct ProjectCollection<'a> {
     pub content: &'a Vec<Deps>,
     pub project_count: &'a usize,
 }
