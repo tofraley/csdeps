@@ -2,7 +2,8 @@
 
 use structopt::StructOpt;
 use std::path::PathBuf;
-use csdeps::{Deps, ProjectCollection, rec_read_dir};
+use csdeps::{Deps, ProjectCollection, find_projects};
+use indicatif::ProgressBar;
 
 #[derive(StructOpt, Debug)]
 struct Opt {
@@ -11,20 +12,27 @@ struct Opt {
   dir: PathBuf,
 
   /// Output using json format
-  #[structopt(short, long)]
+  #[structopt(short="j", long)]
   json: bool,
+
+  /// Search child directories recursively
+  #[structopt(short="r", long)]
+  recursive: bool,
 }
 
 fn main() -> std::io::Result<()> {
   let opt = Opt::from_args();
-  let paths = rec_read_dir(opt.dir.as_path())?;
+  let mut paths: Vec<PathBuf> = vec!();
+  let mut bar = ProgressBar::new_spinner();
+  find_projects(opt.dir, &mut paths, &mut bar, opt.recursive);
+  bar.finish_and_clear();
   let deps = Deps::vec_from_filepaths(paths)?;
-  handle_deps_with_opt(deps, opt);
+  handle_deps_with_opt(deps, opt.json);
   Ok(())
 }
 
-fn handle_deps_with_opt(deps: Vec<Deps>, opt: Opt) {
-  if opt.json  {
+fn handle_deps_with_opt(deps: Vec<Deps>, use_json: bool) {
+  if use_json  {
     let coll: ProjectCollection = ProjectCollection {
       content: &deps,
       project_count: &deps.len(),

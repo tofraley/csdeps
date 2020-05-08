@@ -1,8 +1,9 @@
 use serde::{Serialize, Deserialize};
 use serde_xml_rs::{from_str};
-use std::fs::{File, DirEntry, read_dir};
+use std::fs::{File, read_dir};
 use std::io::prelude::*;
-use std::path::Path;
+use std::path::PathBuf;
+use indicatif::ProgressBar;
 
 const INVALID_CHAR: &str = "\u{feff}";
 
@@ -53,16 +54,16 @@ impl Deps {
     Ok(deps)
   }
 
-  pub fn vec_from_filepaths(paths: Vec<DirEntry>) -> Result<Vec<Deps>, std::io::Error> {
+  pub fn vec_from_filepaths(paths: Vec<PathBuf>) -> Result<Vec<Deps>, std::io::Error> {
     let mut deps_vec: Vec<Deps> = vec!();
     for path in paths{
-      let source = read_csproj(&path.path())?;
+      let source = read_csproj(&path)?;
       match from_str(&source) {
         Err(why) => println!("{:?}", why),
         Ok(mut proj) => {
           let deps = 
             Deps::from_proj_str(
-              &path.path().file_stem().unwrap().to_os_string().into_string().unwrap(), 
+              &path.file_stem().unwrap().to_os_string().into_string().unwrap(), 
               &mut proj).unwrap();
               deps_vec.push(deps);
         }
@@ -78,30 +79,43 @@ pub struct ProjectCollection<'a> {
   pub project_count: &'a usize,
 }
 
-pub fn rec_read_dir(input_path: &Path) -> Result<Vec<DirEntry>, std::io::Error> {
-  let mut paths: Vec<std::fs::DirEntry> = vec!();
-  let entries = read_dir(input_path)?;
-  for dir in entries {
-    match dir {
-      Err(why) => return Err(why),
-      Ok(path) => {
-        if path.path().is_dir() {
-            paths.append(&mut rec_read_dir(&path.path())?);
-        }
-        if let Some(extension) = path.path().extension(){
-          if extension == "csproj" {
-            paths.push(path);
+pub fn find_projects<'a>(input_path: PathBuf, paths: &'a mut Vec<PathBuf>, bar: &mut ProgressBar, is_rec_search: bool) {
+  bar.inc(1);
+  if input_path.is_file() {
+    if is_project(&input_path) {
+      paths.push(input_path);
+    }
+  }
+  else {
+    let entries = read_dir(input_path).unwrap();
+    for dir in entries {
+      match dir {
+        Err(why) => println!("{:?}", why),
+        Ok(entry) => {
+          if is_rec_search && entry.path().is_dir() {
+            bar.set_message(&format!("Searching /{}", entry.path().file_stem().unwrap().to_os_string().into_string().unwrap()));
+            find_projects(entry.path(), paths, bar, is_rec_search);
+          }
+          if is_project(&entry.path()){
+            bar.set_message(&format!("Found {}", entry.path().file_stem().unwrap().to_os_string().into_string().unwrap()));
+            paths.push(entry.path());
           }
         }
       }
     }
   }
-  Ok(paths)
 }
 
-fn read_csproj(path: &Path) -> Result<String, std::io::Error> {
+fn read_csproj(path: &PathBuf) -> Result<String, std::io::Error> {
   let mut file = File::open(path)?;
   let mut proj = String::new();
   file.read_to_string(&mut proj)?;
   Ok(proj.trim_start_matches(INVALID_CHAR).to_string())
+}
+
+fn is_project(entry: &PathBuf) -> bool {
+  if let Some(extension) = entry.extension(){
+    return extension == "csproj";
+  }
+  false
 }

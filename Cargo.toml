@@ -1,6 +1,6 @@
 [package]
 name = "csdeps"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Taylor Fraley <taylor.o.fraley@protonmail.com>"]
 edition = "2018"
 description = "Reads csproj files and prints out the package dependencies."
@@ -14,3 +14,4 @@ serde = { version = "1.0.106", features = ["derive"] }
 serde-xml-rs = "0.4.0"
 serde_json = "1.0"
 structopt = "0.3"
+indicatif = "0.14.0"
